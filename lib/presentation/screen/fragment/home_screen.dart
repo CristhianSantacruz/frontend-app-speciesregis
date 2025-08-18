@@ -56,8 +56,55 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
 
           // Parte del buscador de especies y boton de filtros
-
-         
+           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: TextFormField(
+                    style: TextStyle(fontSize: 14),
+                    textCapitalization: TextCapitalization.characters,
+                    controller: _searchController,
+                    focusNode: _focusNodeSearch,
+                    onChanged: (value) {},
+                    onFieldSubmitted: (value) {
+                      _focusNodeSearch.unfocus();
+                    },
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 17),
+                      label: Text(
+                        '¿Qué buscas hoy?',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      hintText: 'Buscar...',
+                      prefixIcon: GestureDetector(
+                        child: const Icon(Icons.search, color: Colors.grey),
+                        onTap: () {
+                          _focusNodeSearch.unfocus();
+                        },
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey, width: 0.5),
+                        borderRadius: BorderRadius.circular(DEFFAULT_RADIUS),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: greenColor, width: 1),
+                        borderRadius: BorderRadius.circular(DEFFAULT_RADIUS),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
           // mostrar una list horizontal mostrando las categorias
           const SizedBox(height: 5),
