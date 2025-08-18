@@ -17,8 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   final _focusNodeSearch = FocusNode();
 
-
-
   @override
   void initState() {
     super.initState();
@@ -54,9 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // Parte del buscador de especies y boton de filtros
-           Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
@@ -105,7 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
+            ],
+          ),
           // mostrar una list horizontal mostrando las categorias
           const SizedBox(height: 5),
           Row(
@@ -122,12 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 0,
-                  ), 
-                  minimumSize: const Size( 0,40,), 
-                  tapTargetSize:  MaterialTapTargetSize.shrinkWrap,
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  minimumSize: const Size(0, 40),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text("Ver todas"),
               ),
@@ -144,14 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 return GestureDetector(
                   onTap: () {},
-                  child: CategoryItem(name: categories[index], onTapButon: (){}, color: greenColor)
+                  child: CategoryItem(
+                    name: categories[index],
+                    onTapButon: () {},
+                    color: greenColor,
+                  ),
                 );
               },
-            
             ),
           ),
 
-          
           const SizedBox(height: 10),
           Text(
             "Especies (115)",
@@ -179,12 +176,9 @@ class _HomeScreenState extends State<HomeScreen> {
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 0,
-                  ), 
-                  minimumSize: const Size( 0,40,), 
-                  tapTargetSize:  MaterialTapTargetSize.shrinkWrap,
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  minimumSize: const Size(0, 40),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text("Ver todas"),
               ),
@@ -201,14 +195,16 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 return GestureDetector(
                   onTap: () {},
-                  child: CategoryItem(name: categories[index], onTapButon: (){}, color: greenColor)
+                  child: CategoryItem(
+                    name: categories[index],
+                    onTapButon: () {},
+                    color: greenColor,
+                  ),
                 );
               },
-            
             ),
           ),
 
-          
           const SizedBox(height: 10),
           Text(
             "Especies (115)",
@@ -234,20 +230,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 return SpeciesCard(
                   speciesModel: species[index],
                   onTapDetails: () {
-                     Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SpeciesDetailPage(
-                        speciesModel: species[index],
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                SpeciesDetailPage(speciesModel: species[index]),
                       ),
-                    ),
-                  );
+                    );
                   },
                 );
               },
             ),
           ),
-        ],
         ],
       ),
     );
