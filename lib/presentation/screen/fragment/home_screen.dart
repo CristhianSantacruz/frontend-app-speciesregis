@@ -164,7 +164,90 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 10),
 
           // mostrar las especies aqui seccion de ver especies
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Habitat",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ), 
+                  minimumSize: const Size( 0,40,), 
+                  tapTargetSize:  MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text("Ver todas"),
+              ),
+            ],
+          ),
+
+          SizedBox(
+            height: 50,
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              itemCount: categories.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {},
+                  child: CategoryItem(name: categories[index], onTapButon: (){}, color: greenColor)
+                );
+              },
+            
+            ),
+          ),
+
           
+          const SizedBox(height: 10),
+          Text(
+            "Especies (115)",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio:
+                    MediaQuery.of(context).size.width /
+                    (MediaQuery.of(context).size.height / 1.58),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: species.length,
+              itemBuilder: (context, index) {
+                return SpeciesCard(
+                  speciesModel: species[index],
+                  onTapDetails: () {
+                     Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SpeciesDetailPage(
+                        speciesModel: species[index],
+                      ),
+                    ),
+                  );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
         ],
       ),
     );
