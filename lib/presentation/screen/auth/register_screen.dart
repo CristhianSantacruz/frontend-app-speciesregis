@@ -327,6 +327,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: lastNameController,
                 focusNodeForm: _lastNameFocusNode,
                 onFieldSubmittedForm: (value) {
+                  FocusScope.of(context).requestFocus(_phoneFocusNode);
+                },
+              ),
+              const SizedBox(height: 12),
+              SecondTextFormField(
+                validatorForm: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'El teléfono es obligatorio';
+                  }
+                  final phoneRegex = RegExp(r"^[\+]?[0-9]{8,15}$");
+                  if (!phoneRegex.hasMatch(value.replaceAll(RegExp(r'[\s\-]'), ''))) {
+                    return 'Formato: +593987654321';
+                  }
+                  return null;
+                },
+                hintText: "Teléfono (+593987654321)",
+                controller: phoneController,
+                focusNodeForm: _phoneFocusNode,
+                onFieldSubmittedForm: (value) {
                   FocusScope.of(context).requestFocus(_emailFocusNode);
                 },
               ),
@@ -359,12 +378,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'La contraseña es obligatoria';
                   }
-                  if (value != confirmPasswordController.text) {
+                  if (value.length < 8) {
+                    return 'Mínimo 8 caracteres';
+                  }
+                  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                    return 'Debe tener al menos 1 mayúscula';
+                  }
+                  if (!RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'Debe tener al menos 1 minúscula';
+                  }
+                  if (!RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'Debe tener al menos 1 número';
+                  }
+                  if (confirmPasswordController.text.isNotEmpty && value != confirmPasswordController.text) {
                     return 'Las contraseñas no coinciden';
                   }
                   return null;
                 },
-                hintText: 'Contraseña',
+                hintText: 'Contraseña (Ej: MiPassword123)',
                 controller: passwordController,
                 focusNodeForm: _passwordFocusNode,
                 onFieldSubmittedForm: (value) {
@@ -378,7 +409,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 isPassword: true,
                 validatorForm: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Confirmar la contraseña es obligatoria';
+                    return 'Confirma tu contraseña';
                   }
                   if (value != passwordController.text) {
                     return 'Las contraseñas no coinciden';

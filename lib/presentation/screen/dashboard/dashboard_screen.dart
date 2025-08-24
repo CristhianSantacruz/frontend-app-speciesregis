@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
 import 'package:frontend_spaceregis/core/routes/app_routes.dart';
+import 'package:frontend_spaceregis/data/services/auth_service.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/create_species.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/home_screen.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/personal_account.dart';
@@ -20,10 +21,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const CreateSpecies(),
     const PersonalAccount(),
   ];
+  
+  UserData? currentUser;
+  bool isLoadingUser = true;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final authService = AuthService();
+      final userProfile = await authService.getUserProfile();
+      
+      if (userProfile.isSuccess && mounted) {
+        setState(() {
+          currentUser = userProfile.userData;
+          isLoadingUser = false;
+        });
+      } else {
+        setState(() {
+          isLoadingUser = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingUser = false;
+      });
+    }
   }
 
   @override
@@ -69,15 +96,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                "Hola, Cristhian",
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              isLoadingUser
+                                  ? const SizedBox(
+                                      width: 120,
+                                      height: 20,
+                                      child: LinearProgressIndicator(
+                                        backgroundColor: Colors.grey,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      currentUser != null
+                                          ? "Hola, ${currentUser!.fullName.split(' ').first}"
+                                          : "Hola, Usuario",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ],
                           ),
                         ),
