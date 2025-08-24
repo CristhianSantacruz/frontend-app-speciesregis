@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
 import 'package:frontend_spaceregis/core/routes/app_routes.dart';
+import 'package:frontend_spaceregis/data/services/auth_service.dart';
 import 'package:frontend_spaceregis/presentation/widget/text_form_widget.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,7 +38,48 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _login() async {}
+  void _login() async {
+    final authService = AuthService();
+
+    try {
+      final response = await authService.loginUser(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (response.isSuccess && mounted) {
+        // Login exitoso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Bienvenido ${response.userData?.fullName}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navegar al dashboard
+        Navigator.pushReplacementNamed(context, dashboardScreen);
+      } else {
+        // Error en el login
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error inesperado: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: mediaSize.width,
                   height: mediaSize.height * 0.15,
                   decoration: BoxDecoration(),
-                  child: Center(
-                    child: Image.asset(logoPng),
-                  ),
+                  child: Center(child: Image.asset(logoPng)),
                 ),
               ),
               Positioned(bottom: 0, child: _buildBottom(context)),
@@ -192,12 +232,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 10),
-             SizedBox(
+            SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                 Navigator.pushReplacementNamed(context, dashboardScreen);
+                  Navigator.pushReplacementNamed(context, dashboardScreen);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: greenColor,
