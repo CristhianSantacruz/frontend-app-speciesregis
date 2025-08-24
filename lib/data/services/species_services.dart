@@ -42,6 +42,20 @@ class SpeciesServices {
     }
   }
 
-  
+  Future<SpeciesModel> fetchSpeciesDetail(String id) async {
+    final response = await _dio.get("$getSpecies/$id"); // Ajusta la ruta según tu API
+    if (response.statusCode == 200 || response.data['status'] == 'success') {
+      return SpeciesModel.fromJson(response.data['data']);
+    }
+    throw Exception('Error al obtener detalle de especie');
+  }
+
+  Future<bool> deleteSpecies(String id) async {
+    final response = await _dio.delete("/species/$id$deleteSpecie"); // Ajusta la ruta según tu API
+    if (response.statusCode == 200 || response.data['status'] == 'success') {
+      return true;
+    }
+    throw Exception('Error al eliminar especie');
+  }
 
 }

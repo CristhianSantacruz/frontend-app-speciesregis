@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
+import 'package:frontend_spaceregis/core/routes/app_routes.dart';
 import 'package:frontend_spaceregis/data/model/species_model.dart';
+import 'package:frontend_spaceregis/data/services/species_services.dart';
+import 'package:frontend_spaceregis/presentation/widget/button_app.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_service.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_types.dart';
 
 class SpeciesDetailPage extends StatefulWidget {
-  final SpeciesModel speciesModel;
+  final String? speciesId;
 
-  const SpeciesDetailPage({super.key, required this.speciesModel});
+  const SpeciesDetailPage({super.key, required this.speciesId});
 
   @override
   State<SpeciesDetailPage> createState() => _SpeciesDetailPageState();
@@ -15,11 +20,15 @@ class SpeciesDetailPage extends StatefulWidget {
 class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
   final ScrollController _scrollController = ScrollController();
   bool _showAppBarTitle = false;
+  final _speciesServices = SpeciesServices();
+  SpeciesModel? speciesModel;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _fetchSpecies();
   }
 
   @override
@@ -37,20 +46,48 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
     }
   }
 
-  // este debemos poner cuando ya se conecte con la base de datos 
+  void _fetchSpecies() async {
+    final species = await _speciesServices.fetchSpeciesDetail(
+      widget.speciesId!,
+    );
+    setState(() {
+      speciesModel = species;
+      _isLoading = false;
+    });
+  }
+
+  void _deleteSpecies() async {
+    final bool = await _speciesServices.deleteSpecies(widget.speciesId!);
+    if (bool) {
+      ToastService.show(
+        context: context,
+        type: ToastType.success,
+        title: 'Especie eliminada',
+        message: 'Especie eliminada con éxito',
+      );
+      Navigator.pushReplacementNamed(context, dashboardScreen);
+    } else {
+      ToastService.show(
+        context: context,
+        type: ToastType.error,
+        title: '!Ups!',
+        message: 'Ocurrió un error al eliminar la especie',
+      );
+    }
+  }
+
+  // este debemos poner cuando ya se conecte con la base de datos
 
   Widget _buildImageWidget() {
-    if (widget.speciesModel.imageBase64 != null &&
-        widget.speciesModel.imageBase64!.isNotEmpty) {
+    if (speciesModel?.imageBase64 != null) {
       try {
-        final bytes = base64Decode(widget.speciesModel.imageBase64!);
-        /*return Image.memory(
+        final bytes = base64Decode(speciesModel!.imageBase64!);
+        return Image.memory(
           bytes,
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-        );*/
-        return Image.asset(imageMonkey);
+        );
       } catch (e) {
         return _buildPlaceholderImage();
       }
@@ -77,151 +114,160 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // AppBar con imagen hero
-          SliverAppBar(
-            expandedHeight: 350,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.white,
-            title: AnimatedOpacity(
-              opacity: _showAppBarTitle ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
-              child: Text(
-                widget.speciesModel.name ?? 'Especie',
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            leading: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: greenColor,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Imagen principal
-                  Hero(
-                    tag: 'species_${widget.speciesModel.name}',
-                    child: Image.asset(
-                      imageMonkey,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
-                  ),
-                  // Gradiente overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                        stops: const [0.6, 1.0],
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // AppBar con imagen hero
+                  SliverAppBar(
+                    expandedHeight: 350,
+                    pinned: true,
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.white,
+                    title: AnimatedOpacity(
+                      opacity: _showAppBarTitle ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        speciesModel?.name ?? 'Especie',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
-                  ),
-                  // Nombre en la parte inferior
-                  Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (widget.speciesModel.name != null)
-                          Text(
-                            widget.speciesModel.name!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  offset: Offset(0, 2),
-                                  blurRadius: 4,
-                                  color: Colors.black54,
-                                ),
-                              ],
-                            ),
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: greenColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Imagen principal
+                          Hero(
+                            tag: 'species_${speciesModel?.name}',
+                            child: _buildImageWidget(),
                           ),
-                        if (widget.speciesModel.scientificName != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              widget.speciesModel.scientificName!,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
-                                fontStyle: FontStyle.italic,
-                                shadows: const [
-                                  Shadow(
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2,
-                                    color: Colors.black54,
-                                  ),
+                          // Gradiente overlay
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
                                 ],
+                                stops: const [0.6, 1.0],
                               ),
                             ),
                           ),
-                      ],
+                          // Nombre en la parte inferior
+                          Positioned(
+                            bottom: 20,
+                            left: 20,
+                            right: 20,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (speciesModel?.name != null)
+                                  Text(
+                                    speciesModel?.name! ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      shadows: [
+                                        Shadow(
+                                          offset: Offset(0, 2),
+                                          blurRadius: 4,
+                                          color: Colors.black54,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                if (speciesModel?.scientificName != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      speciesModel?.scientificName ?? '',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 16,
+                                        fontStyle: FontStyle.italic,
+                                        shadows: const [
+                                          Shadow(
+                                            offset: Offset(0, 1),
+                                            blurRadius: 2,
+                                            color: Colors.black54,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Contenido principal
+                  SliverToBoxAdapter(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Información básica
+                            _buildInfoSection(),
+
+                            if (speciesModel?.description != null) ...[
+                              const SizedBox(height: 32),
+                              _buildDescriptionSection(),
+                            ],
+
+                            if (speciesModel?.characteristic != null) ...[
+                              const SizedBox(height: 32),
+                              _buildCharacteristicsSection(),
+                            ],
+                            const SizedBox(height: 15),
+                            ButtonApp(
+                              text: "Eliminar",
+                              colorText: Colors.white,
+                              backgroundColor: Colors.red,
+                              onPressed: () {
+                                _deleteSpecies();
+                              },
+                            ),
+
+                            const SizedBox(height: 30),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-
-          // Contenido principal
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Información básica
-                    _buildInfoSection(),
-
-                    if (widget.speciesModel.description != null) ...[
-                      const SizedBox(height: 32),
-                      _buildDescriptionSection(),
-                    ],
-
-                    if (widget.speciesModel.characteristic != null) ...[
-                      const SizedBox(height: 32),
-                      _buildCharacteristicsSection(),
-                    ],
-
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -245,19 +291,19 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
         ),
         const SizedBox(height: 16),
 
-        if (widget.speciesModel.habitat != null)
+        if (speciesModel?.habitat != null)
           _buildInfoCard(
             icon: Icons.location_on,
             title: 'Hábitat',
-            content: widget.speciesModel.habitat!,
+            content: speciesModel?.habitat! ?? "",
             color: Colors.teal,
           ),
 
-        if (widget.speciesModel.scientificName != null)
+        if (speciesModel?.scientificName != null)
           _buildInfoCard(
             icon: Icons.science,
             title: 'Nombre Científico',
-            content: widget.speciesModel.scientificName!,
+            content: speciesModel?.scientificName! ?? "",
             color: Colors.lightGreen,
           ),
       ],
@@ -292,7 +338,8 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: Text(
-            widget.speciesModel.description!,
+            speciesModel?.description! ?? "",
+
             style: const TextStyle(
               fontSize: 16,
               height: 1.6,
@@ -332,7 +379,8 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
             border: Border.all(color: Colors.green[200]!),
           ),
           child: Text(
-            widget.speciesModel.characteristic!,
+            speciesModel?.characteristic! ?? "",
+
             style: const TextStyle(
               fontSize: 16,
               height: 1.6,
