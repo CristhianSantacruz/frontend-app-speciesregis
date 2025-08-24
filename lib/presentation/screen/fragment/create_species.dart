@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
+import 'package:frontend_spaceregis/data/services/species_services.dart';
+import 'package:frontend_spaceregis/presentation/screen/dashboard/dashboard_screen.dart';
 import 'package:frontend_spaceregis/presentation/widget/primary_text_form_widget.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_service.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_types.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -40,9 +44,23 @@ class _CreateSpeciesState extends State<CreateSpecies> {
   final FocusNode _descriptionFocusNode = FocusNode();
   final FocusNode _characteristicFocusNode = FocusNode();
 
+  List<String> _habitats = [];
+  bool _isLoadingHabitats = true;
+
   @override
   void initState() {
     super.initState();
+    _loadHabitats();
+  }
+
+  Future<void> _loadHabitats() async {
+    try {
+      _habitats = await SpeciesServices().fetchHabitats();
+      _isLoadingHabitats = false;
+      setState(() {});
+    } catch (e) {
+      // Maneja el error
+    }
   }
 
   @override
@@ -232,7 +250,7 @@ class _CreateSpeciesState extends State<CreateSpecies> {
   }
 
   // Método para crear la especie (implementar según tu lógica)
-  void _createSpecies() {
+  void _createSpecies() async {
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -242,100 +260,134 @@ class _CreateSpeciesState extends State<CreateSpecies> {
       );
       return;
     }
-
-    // Aquí implementas tu lógica de creación de especie
-    print('Creando especie con imagen: ${_selectedImage!.path}');
-
-    // Ejemplo: navegación de regreso o a otra pantalla
-    Navigator.pop(context);
+    try {
+      final bool = await SpeciesServices().registerSpecies(
+        name: _nameController.text,
+        scientificName: _scientificNameController.text,
+        description: _descriptionController.text,
+        characteristic: _characteristicController.text,
+        habitat: _habitatController.text,
+        imagePath: _selectedImage!.path,
+      );
+      if (bool == true) {
+        ToastService.show(
+          context: context,
+          type: ToastType.success,
+          title: 'Especie creada',
+          message: 'Especie creada con éxito',
+        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => DashboardScreen(currentIndex: 0,)));
+      } else {
+        ToastService.show(
+          context: context,
+          type: ToastType.error,
+          title: '!Ups!',
+          message: 'Ocurrió un error al crear la especie',
+        );
+      }
+    } catch (e) {
+       ToastService.show(
+          context: context,
+          type: ToastType.error,
+          title: '!Ups!',
+          message: 'Ocurrió un error al crear la especie',
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            children: [
-              const SizedBox(width: 10),
-              for (int i = 0; i < 2; i++)
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(right: i < 1 ? 8 : 0),
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: i <= _currentStep ? greenColor : Colors.grey,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 10),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            _currentStep == 0 ? "Datos de la especie" : 'Imagen de la especie',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [_buildStep1(), _buildStep2()],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              if (_currentStep > 0)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _previousStep,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.blue[600]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+    return _isLoadingHabitats
+        ? const Center(child: CircularProgressIndicator())
+        : Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              child: Row(
+                children: [
+                  const SizedBox(width: 10),
+                  for (int i = 0; i < 2; i++)
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: i < 1 ? 8 : 0),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: i <= _currentStep ? greenColor : Colors.grey,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Anterior',
-                      style: TextStyle(fontSize: 16, color: Colors.blueGrey),
-                    ),
-                  ),
-                ),
-              if (_currentStep > 0) const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: greenColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    _currentStep == 1 ? 'Finalizar' : 'Siguiente',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  const SizedBox(width: 10),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                _currentStep == 0
+                    ? "Datos de la especie"
+                    : 'Imagen de la especie',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
-          ),
-        ),
-      ],
-    );
+            ),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [_buildStep1(), _buildStep2()],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  if (_currentStep > 0)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _previousStep,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: Colors.blue[600]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Anterior',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (_currentStep > 0) const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _nextStep,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: greenColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        _currentStep == 1 ? 'Finalizar' : 'Siguiente',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
   }
 
   Widget _buildStep1() {
@@ -366,14 +418,24 @@ class _CreateSpeciesState extends State<CreateSpecies> {
                 },
               ),
               const SizedBox(height: 15),
-              PrimaryTextForm(
-                focusNode: _habitatFocusNode,
-                controller: _habitatController,
-                label: 'Habitat',
-                hintText: 'Habitat de la especie',
-                onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_descriptionFocusNode);
+              DropdownButtonFormField<String>(
+                value:
+                    _habitatController.text.isNotEmpty
+                        ? _habitatController.text
+                        : null,
+                items:
+                    _habitats
+                        .map(
+                          (habitat) => DropdownMenuItem(
+                            value: habitat,
+                            child: Text(habitat),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (value) {
+                  _habitatController.text = value ?? '';
                 },
+                decoration: InputDecoration(labelText: 'Hábitat'),
               ),
               const SizedBox(height: 15),
               PrimaryTextForm(

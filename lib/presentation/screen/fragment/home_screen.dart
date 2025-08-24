@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
 import 'package:frontend_spaceregis/data/model/species_model.dart';
+import 'package:frontend_spaceregis/data/services/species_services.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/species_details.dart';
 import 'package:frontend_spaceregis/presentation/widget/category_item.dart';
 import 'package:frontend_spaceregis/presentation/widget/species_card.dart';
@@ -16,13 +16,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   final _focusNodeSearch = FocusNode();
+  final _speciesServices = SpeciesServices();
 
   @override
   void initState() {
     super.initState();
+    _fetchHabitats();
+
   }
 
-  final List<String> categories = ["T0DAS", "BOSQUES", "PLAYAS", "LAGOS"];
+  final List<String> habitats = [];
+  bool _isLoadingHabitats = true;
 
   final List<SpeciesModel> species = [
     SpeciesModel(
@@ -45,9 +49,22 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  Future<void> _fetchHabitats() async {
+    setState(() {
+      _isLoadingHabitats = true;
+    });
+    final habitats = await _speciesServices.fetchHabitats();
+    setState(() {
+      this.habitats.addAll(habitats);
+      _isLoadingHabitats = false;
+    });
+  }
+  
+
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return _isLoadingHabitats ? const Center(child: CircularProgressIndicator()) : Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,13 +151,13 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView.builder(
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
-              itemCount: categories.length,
+              itemCount: habitats.length,
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 return GestureDetector(
                   onTap: () {},
                   child: CategoryItem(
-                    name: categories[index],
+                    name: habitats[index],
                     onTapButon: () {},
                     color: greenColor,
                   ),
@@ -149,61 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const SizedBox(height: 10),
-          Text(
-            "Especies (115)",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // mostrar las especies aqui seccion de ver especies
-          const SizedBox(height: 5),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Habitat",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  minimumSize: const Size(0, 40),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text("Ver todas"),
-              ),
-            ],
-          ),
-
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const BouncingScrollPhysics(),
-              itemCount: categories.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {},
-                  child: CategoryItem(
-                    name: categories[index],
-                    onTapButon: () {},
-                    color: greenColor,
-                  ),
-                );
-              },
-            ),
-          ),
+          
+        
 
           const SizedBox(height: 10),
           Text(
@@ -233,8 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (context) =>
+                        builder:(context) =>
                                 SpeciesDetailPage(speciesModel: species[index]),
                       ),
                     );

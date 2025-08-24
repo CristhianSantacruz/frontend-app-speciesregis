@@ -155,7 +155,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      floatingActionButton: SizedBox(
+      floatingActionButton: currentIndex != 1 ? SizedBox(
         width: 70,
         height: 70,
         child: FloatingActionButton(
@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: Colors.black,
           child: const Icon(Icons.add, color: greenColorLow3, size: 40),
         ),
-      ),
+      ) : null,
     );
   }
 }

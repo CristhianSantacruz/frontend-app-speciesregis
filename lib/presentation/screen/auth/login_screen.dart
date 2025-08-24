@@ -192,8 +192,25 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 10),
+             SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                 Navigator.pushReplacementNamed(context, dashboardScreen);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: greenColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Iniciar sesión sin registrarme'),
+              ),
+            ),
 
-            const SizedBox(height: 1),
+            const SizedBox(height: 10),
 
             Center(
               child: TextButton(

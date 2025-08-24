@@ -66,7 +66,7 @@ class _IntroductionPageState extends State<IntroductionPage> {
         curve: Curves.easeInOut,
       );
     } else {
-       Navigator.pushReplacementNamed(context, dashboardScreen);
+       Navigator.pushReplacementNamed(context, loginScreen);
     }
   }
 
@@ -81,7 +81,7 @@ class _IntroductionPageState extends State<IntroductionPage> {
   }
 
   void _skipIntro() {
-     Navigator.pushReplacementNamed(context, dashboardScreen);
+     Navigator.pushReplacementNamed(context,  loginScreen);
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
 import 'package:frontend_spaceregis/data/model/species_model.dart';
@@ -12,7 +14,8 @@ class SpeciesCard extends StatefulWidget {
   State<SpeciesCard> createState() => _SpeciesCardState();
 }
 
-class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin {
+class _SpeciesCardState extends State<SpeciesCard>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -23,13 +26,9 @@ class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -100,31 +99,69 @@ class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin
                                 width: double.infinity,
                                 height: double.infinity,
                                 color: Colors.grey[50],
-                                child: Image.asset(
-                                  "assets/images/image_mono.png",
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Colors.grey[100]!,
-                                            Colors.grey[200]!,
-                                          ],
+                                child:
+                                    widget.speciesModel.imageBase64 != null &&
+                                            widget.speciesModel.imageBase64!.isNotEmpty
+                                        ? Image.memory(
+                                          base64Decode(
+                                            widget.speciesModel.imageBase64!,
+                                          ),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Colors.grey[100]!,
+                                                    Colors.grey[200]!,
+                                                  ],
+                                                ),
+                                              ),
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.pets,
+                                                  size: 40,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                        : Image.asset(
+                                          "assets/images/image_mono.png",
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Colors.grey[100]!,
+                                                    Colors.grey[200]!,
+                                                  ],
+                                                ),
+                                              ),
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.pets,
+                                                  size: 40,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
-                                      ),
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.pets,
-                                          size: 40,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
                               ),
                               // Gradiente sutil en la parte inferior
                               Positioned(
@@ -150,7 +187,7 @@ class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin
                         ),
                       ),
                     ),
-                    
+
                     // Información de la especie
                     Expanded(
                       flex: 2,
@@ -161,7 +198,7 @@ class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Hábitat con icono
-                            if (widget.speciesModel.habitat != null && 
+                            if (widget.speciesModel.habitat != null &&
                                 widget.speciesModel.habitat!.isNotEmpty)
                               Row(
                                 children: [
@@ -185,26 +222,29 @@ class _SpeciesCardState extends State<SpeciesCard> with TickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                            
+
                             const SizedBox(height: 8),
-                            
+
                             // Nombre de la especie
                             if (widget.speciesModel.name != null &&
                                 widget.speciesModel.name!.isNotEmpty)
-                              Text(
-                                widget.speciesModel.name!,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                  height: 1.3,
+                              FittedBox(
+                                child: Text(
+                                  widget.speciesModel.name!,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            
+
                             const Spacer(),
-                            
+
                             // Indicador visual para mostrar que es clickeable
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
