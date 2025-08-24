@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_spaceregis/core/constant/constant.dart';
+import 'package:frontend_spaceregis/core/routes/app_routes.dart';
+import 'package:frontend_spaceregis/data/services/auth_service.dart';
 import 'package:frontend_spaceregis/presentation/widget/text_form_widget.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -12,6 +14,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
+  final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -21,10 +24,148 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordFocusNode = FocusNode();
   final _firstNameFocusNode = FocusNode();
   final _lastNameFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
 
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _register() async {}
+  Future<void> _register() async {
+    final authService = AuthService();
+
+    try {
+      final response = await authService.registerUser(
+        firstName: firstNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
+        phone: phoneController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      if (response.isSuccess && mounted) {
+        // Registro exitoso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navegar al dashboard o home
+        Navigator.pushReplacementNamed(context, dashboardScreen);
+      } else {
+        // Error en el registro
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+
+          // Mostrar errores específicos de validación si existen
+          if (response.errors.isNotEmpty) {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: Row(
+                      children: [
+                        Icon(Icons.warning_amber, color: Colors.orange),
+                        SizedBox(width: 8),
+                        Text('Requisitos de Contraseña'),
+                      ],
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tu contraseña debe cumplir:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        ...response.errors
+                            .map(
+                              (error) => Padding(
+                                padding: EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_outline,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        error,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        SizedBox(height: 12),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '✅ Ejemplo de contraseña válida:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                              Text(
+                                'MiPassword123',
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 16,
+                                  color: Colors.green.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: greenColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Entendido'),
+                      ),
+                    ],
+                  ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error inesperado: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
