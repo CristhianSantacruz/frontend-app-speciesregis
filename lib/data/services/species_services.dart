@@ -4,7 +4,7 @@ import 'package:frontend_spaceregis/data/api/client_dio.dart';
 import 'package:frontend_spaceregis/data/model/species_model.dart';
 
 class SpeciesServices {
-   final _dio = DioClient().dio;
+  final _dio = DioClient().dio;
 
   Future<List<String>> fetchHabitats() async {
     final response = await _dio.get(getHabitats); // Ajusta la ruta según tu API
@@ -14,6 +14,7 @@ class SpeciesServices {
     }
     throw Exception('Error al obtener hábitats');
   }
+
   Future<bool> registerSpecies({
     required String name,
     required String scientificName,
@@ -33,7 +34,7 @@ class SpeciesServices {
     try {
       final response = await _dio.post(creteSpecie, data: formData);
       if (response.statusCode == 201 || response.data['status'] == 'success') {
-          return true;
+        return true;
       } else {
         return false;
       }
@@ -42,8 +43,19 @@ class SpeciesServices {
     }
   }
 
+  Future<List<SpeciesModel>> fetchAllSpecies() async {
+    final response = await _dio.get(getSpecies); // Ajusta la ruta según tu API
+    if (response.statusCode == 200 || response.data['status'] == 'success') {
+      List<dynamic> data = response.data['data'];
+      return data.map((e) => SpeciesModel.fromJson(e)).toList();
+    }
+    throw Exception('Error al obtener especies');
+  }
+
   Future<SpeciesModel> fetchSpeciesDetail(String id) async {
-    final response = await _dio.get("$getSpecies/$id"); // Ajusta la ruta según tu API
+    final response = await _dio.get(
+      "$getSpecies/$id",
+    ); // Ajusta la ruta según tu API
     if (response.statusCode == 200 || response.data['status'] == 'success') {
       return SpeciesModel.fromJson(response.data['data']);
     }
@@ -51,11 +63,12 @@ class SpeciesServices {
   }
 
   Future<bool> deleteSpecies(String id) async {
-    final response = await _dio.delete("/species/$id$deleteSpecie"); // Ajusta la ruta según tu API
+    final response = await _dio.delete(
+      "/species/$id$deleteSpecie",
+    ); // Ajusta la ruta según tu API
     if (response.statusCode == 200 || response.data['status'] == 'success') {
       return true;
     }
     throw Exception('Error al eliminar especie');
   }
-
 }
