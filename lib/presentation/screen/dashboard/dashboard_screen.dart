@@ -5,6 +5,7 @@ import 'package:frontend_spaceregis/data/services/auth_service.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/create_species.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/home_screen.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/personal_account.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int? currentIndex;
@@ -24,11 +25,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   
   UserData? currentUser;
   bool isLoadingUser = true;
+  bool isLogged = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    checkLogged();
+  }
+
+  void checkLogged()  async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool("isLoggedIn") == true) {
+       _loadUserData();
+    } else {
+      setState(() => isLogged = false);
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -40,6 +51,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           currentUser = userProfile.userData;
           isLoadingUser = false;
+          isLogged = true;
         });
       } else {
         setState(() {
@@ -128,6 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
         actions: [
+          if (isLogged == false)
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, loginScreen);

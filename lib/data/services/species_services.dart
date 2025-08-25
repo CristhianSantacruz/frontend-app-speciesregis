@@ -15,6 +15,8 @@ class SpeciesServices {
     throw Exception('Error al obtener hábitats');
   }
 
+
+
   Future<bool> registerSpecies({
     required String name,
     required String scientificName,
@@ -50,6 +52,17 @@ class SpeciesServices {
       return data.map((e) => SpeciesModel.fromJson(e)).toList();
     }
     throw Exception('Error al obtener especies');
+  }
+
+    Future<List<SpeciesModel>> fetchHabitatsByHabitat(String  habitat) async {
+    final response = await _dio.get(getSpecies,queryParameters: {
+      "habitat": habitat,
+    }); // Ajusta la ruta según tu API
+    if (response.statusCode == 200 && response.data['status'] == 'success') {
+      List<dynamic> data = response.data['data'];
+      return data.map((e) => SpeciesModel.fromJson(e)).toList();
+    }
+    throw Exception('Error al obtener hábitats');
   }
 
   Future<SpeciesModel> fetchSpeciesDetail(String id) async {

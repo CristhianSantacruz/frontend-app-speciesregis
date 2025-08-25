@@ -3,6 +3,7 @@ import 'package:frontend_spaceregis/core/constant/constant.dart';
 import 'package:frontend_spaceregis/core/routes/app_routes.dart';
 import 'package:frontend_spaceregis/data/services/auth_service.dart';
 import 'package:frontend_spaceregis/presentation/widget/text_form_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? emailUserRegistered;
@@ -40,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     final authService = AuthService();
+    final prefs = await SharedPreferences.getInstance();
 
     try {
       final response = await authService.loginUser(
@@ -55,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        prefs.setBool("isLoggedIn", true);
 
         // Navegar al dashboard
         Navigator.pushReplacementNamed(context, dashboardScreen);

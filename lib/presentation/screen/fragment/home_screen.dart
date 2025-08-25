@@ -5,6 +5,8 @@ import 'package:frontend_spaceregis/data/services/species_services.dart';
 import 'package:frontend_spaceregis/presentation/screen/fragment/species_details.dart';
 import 'package:frontend_spaceregis/presentation/widget/category_item.dart';
 import 'package:frontend_spaceregis/presentation/widget/species_card.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_service.dart';
+import 'package:frontend_spaceregis/presentation/widget/toast/toast_types.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> habitats = [];
   List<SpeciesModel> species = [];
+  List<SpeciesModel> allSpecies = [];
+  List<SpeciesModel> filteredSpecies = [];
 
   Future<void> _fetchData() async {
     setState(() {
@@ -40,11 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
         _speciesServices.fetchHabitats(),
         _speciesServices.fetchAllSpecies(),
       ]);
-
       setState(() {
         habitats.clear();
         habitats.addAll(results[0] as List<String>);
-        species = results[1] as List<SpeciesModel>;
+        allSpecies = results[1] as List<SpeciesModel>;
+        species = List.from(allSpecies); // Cambiar esta línea
+        filteredSpecies = List.from(allSpecies); // Agregar esta línea
         _isLoading = false;
       });
     } catch (e) {
@@ -53,6 +58,43 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
+
+  Future<void> _filterSpecies(String habitat) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+     
+      final results = await _speciesServices.fetchHabitatsByHabitat(habitat);
+
+      setState(() {
+        species = results;
+        filteredSpecies = List.from(results); 
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _performSearch(String searchText) {
+  if (searchText.isEmpty) {
+    setState(() {
+      filteredSpecies = List.from(species);
+    });
+    return;
+  }
+
+  setState(() {
+    filteredSpecies = species.where((specie) {
+      return specie.name != null && 
+             specie.name!.toLowerCase().contains(searchText.toLowerCase());
+    }).toList();
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         textCapitalization: TextCapitalization.characters,
                         controller: _searchController,
                         focusNode: _focusNodeSearch,
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          _performSearch(value);
+                        },
                         onFieldSubmitted: (value) {
                           _focusNodeSearch.unfocus();
                         },
@@ -139,7 +183,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _fetchData();
+                    },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                       minimumSize: const Size(0, 40),
@@ -158,13 +204,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: habitats.length,
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {},
-                      child: CategoryItem(
-                        name: habitats[index],
-                        onTapButon: () {},
-                        color: greenColor,
-                      ),
+                    final habitat = habitats[index];
+                    return CategoryItem(
+                      name: habitats[index],
+                      onTapButon: () {
+                        if (habitat == "Todas") {
+                          ToastService.show(
+                            context: context,
+                            type: ToastType.success,
+                            title: 'Perfecto',
+                            message: 'Mostrando todas las especies',
+                          );
+                          _fetchData();
+                        } else {
+                          ToastService.show(
+                            context: context,
+                            type: ToastType.success,
+                            title: 'Habitat',
+                            message: 'Habitat seleccionado $habitat',
+                          );
+                          _filterSpecies(habitat);
+                        }
+                      },
+                      color: greenColor,
                     );
                   },
                 ),
@@ -172,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 10),
               Text(
-                "Especies ${species.length}",
+                "Especies ${filteredSpecies.length}",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -190,17 +252,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 16,
                   ),
-                  itemCount: species.length,
+                itemCount: filteredSpecies.length,
                   itemBuilder: (context, index) {
                     return SpeciesCard(
-                      speciesModel: species[index],
+                      speciesModel: filteredSpecies[index],
                       onTapDetails: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => SpeciesDetailPage(
-                                  speciesId: species[index].id!,
+                                  speciesId: filteredSpecies[index].id!,
                                 ),
                           ),
                         );
